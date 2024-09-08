@@ -28,7 +28,7 @@
         .video-section {
             flex: 3;
             order: 2;
-            margin: 20px;
+            margin: 0 20px;
         }
 
         .tag-list-section, .control-list-section {
@@ -170,7 +170,7 @@
         </div>
 
         <!-- Save Button -->
-        <button id="save-btn">Save Tags as CSV</button>
+        <button id="save-btn">Save tags</button>
     </div>
 
     <!-- Control List -->
@@ -291,15 +291,13 @@
     saveBtn.addEventListener('click', function() {
         if (tags.length === 0) return; // Do nothing if there are no tags
 
-        let csvContent = "data:text/csv;charset=utf-8,tag,starttimestamp(ms),endtimestamp(ms)\n";
-        tags.forEach(tagObj => {
-            csvContent += `${tagObj.tag},${tagObj.startTimestamp},${tagObj.endTimestamp}\n`;
-        });
+        const lines = tags.map((tag) => JSON.stringify(tag))
+        const blob = new Blob([lines], { type: 'plain/text' });
+        const url = URL.createObjectURL(blob);
 
-        const encodedUri = encodeURI(csvContent);
         const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', file.name + '_tags.csv');
+        link.href = url;
+        link.setAttribute('download', file.name + '_tags.jsonl');
         document.body.appendChild(link); // Required for FF
         link.click();
         document.body.removeChild(link);
