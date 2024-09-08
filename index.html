@@ -20,7 +20,7 @@
 
         .container {
             display: flex;
-            max-width: 1440px;
+            max-width: 1280px;
             margin: 0 auto;
             flex-wrap: wrap;
         }
@@ -108,12 +108,19 @@
 
         .warning {
             color: #FFCC00;
-            margin-top: 10px;
+            margin-top: 5px;
         }
 
         #save-btn, #delete-btn {
             margin-top: 10px;
             margin-bottom: 10px;
+        }
+
+        #delete-btn {
+            color: rgb(189, 24, 24);
+        }
+        #delete-btn:hover {
+            background-color: rgb(189, 24, 24);
         }
 
         ul {
@@ -162,15 +169,12 @@
             <button id="play-btn">Play</button>
             <button id="pause-btn">Pause</button>
         </div>
-
+        
         <!-- Tagging -->
         <div class="tagging">
             <input type="text" id="tag-input" placeholder="Start typing to tag an interval" autocomplete="off" disabled>
             <p id="warning-msg" class="warning" style="display: none;">Press Enter again to set the end time for the tag.</p>
         </div>
-
-        <!-- Save Button -->
-        <button id="save-btn">Save tags</button>
     </div>
 
     <!-- Control List -->
@@ -192,7 +196,11 @@
     <!-- Tag List -->
     <div class="tag-list-section">
         <h3>Tags with Intervals</h3>
-        <button id="delete-btn">Delete last tag</button>
+        <div>
+            <button id="delete-btn">Delete last tag</button>
+            <!-- Save Button -->
+            <button id="save-btn">Save tags</button>
+        </div>
         <div class="tag-list">
             <ul id="tag-list"></ul>
         </div>
