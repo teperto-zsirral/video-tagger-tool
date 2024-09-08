@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Tagging Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2C2F33;
+            color: #DCDDDE;
+            margin: 20px;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1000px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .video-section {
+            flex: 3;
+            order: 2;
+            margin: 20px;
+        }
+
+        .tag-list-section, .control-list-section {
+            flex: 1;
+            background-color: #23272A;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .control-list-section {
+            order: 1;
+        }
+
+        .tag-list-section {
+            order: 3;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .controls, .tagging {
+            margin: 10px 0;
+        }
+
+        .controls button, .tagging button, #save-btn, #delete-btn {
+            padding: 10px;
+            cursor: pointer;
+            border: 2px solid #7289DA;
+            background-color: transparent;
+            color: #DCDDDE;
+            border-radius: 8px;
+            outline: none;
+            transition: background-color 0.2s;
+        }
+
+        .controls button:hover, .tagging button:hover, #save-btn:hover, #delete-btn:hover {
+            background-color: #7289DA;
+            color: white;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            margin-right: 10px;
+            background-color: #23272A;
+            color: #DCDDDE;
+            border: 2px solid #7289DA;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .tag-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .tag-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #7289DA;
+            cursor: pointer;
+        }
+
+        .tag-list li:hover {
+            background-color: #7289DA;
+            color: white;
+        }
+
+        .warning {
+            color: #FFCC00;
+            margin-top: 10px;
+        }
+
+        #save-btn, #delete-btn {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            margin-left: -20px;
+        }
+
+        li {
+            margin-top: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .tag-list-section, .control-list-section {
+                margin-top: 20px;
+                margin-right: 0;
+            }
+
+            .control-list-section {
+                order: 3;
+            }
+
+            .tag-list-section {
+                order: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="video-section">
+        <h1>Video Tagging Tool</h1>
+
+        <!-- Video Player -->
+        <input type="file" id="video-input" accept="video/*">
+        <video id="video-player" controls>
+            Your browser does not support the video tag.
+        </video>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="play-btn">Play</button>
+            <button id="pause-btn">Pause</button>
+        </div>
+
+        <!-- Tagging -->
+        <div class="tagging">
+            <input type="text" id="tag-input" placeholder="Start typing to tag an interval" autocomplete="off" disabled>
+            <p id="warning-msg" class="warning" style="display: none;">Press Enter again to set the end time for the tag.</p>
+        </div>
+
+        <!-- Save Button -->
+        <button id="save-btn">Save Tags as CSV</button>
+    </div>
+
+    <!-- Control List -->
+    <div class="control-list-section">
+        <h3>Controls</h3>
+        <ul>
+            <li>Tags don't have to be in order!</li>
+            <li>Left Arrow: Move video 1 second backward</li>
+            <li>Right Arrow: Move video 1 second forward</li>
+            <li>Play/Pause Button: Control video playback</li>
+            <li>
+                Start typing to pause video, marks the start of interval.
+                Press Enter once to continue playing the video.
+                Press Enter again to add the tag, marks the end of interval.
+            </li>
+        </ul>
+    </div>
+
+    <!-- Tag List -->
+    <div class="tag-list-section">
+        <h3>Tags with Intervals</h3>
+        <button id="delete-btn">Delete last tag</button>
+        <div class="tag-list">
+            <ul id="tag-list"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    const videoInput = document.getElementById('video-input');
+    const videoPlayer = document.getElementById('video-player');
+    const playBtn = document.getElementById('play-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const tagInput = document.getElementById('tag-input');
+    const tagList = document.getElementById('tag-list');
+    const saveBtn = document.getElementById('save-btn');
+    const deleteBtn = document.getElementById('delete-btn');
+    const warningMsg = document.getElementById('warning-msg');
+
+    let tags = [];
+    let isTyping = false;
+    let startTimestamp = null;
+    let endTimestamp = null;
+    let file 
+
+    // Load the video from the user's local computer
+    videoInput.addEventListener('change', function(event) {
+        file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            videoPlayer.src = url;
+            tagInput.disabled = false;
+        }
+        console.log(file)
+    });
+
+    // Play the video
+    playBtn.addEventListener('click', function() {
+        videoPlayer.play();
+    });
+
+    // Pause the video
+    pauseBtn.addEventListener('click', function() {
+        videoPlayer.pause();
+    });
+
+    // Move video 1 second back or forth using arrow keys
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'ArrowLeft') {
+            videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 1);
+        } else if (event.key === 'ArrowRight') {
+            videoPlayer.currentTime = Math.min(videoPlayer.duration, videoPlayer.currentTime + 1);
+        }
+    });
+
+    function updateList() {
+        const newList = tags.map(({ tag, startTimestamp, endTimestamp }) => {
+            const li = document.createElement('li');
+            li.textContent = `${tag}\n [${(startTimestamp/1000).toFixed(1)}, ${(endTimestamp/1000).toFixed(1)}]`;
+            return li;
+        })
+        tagList.replaceChildren(...newList)
+    }
+
+    // Pause the video when typing starts and save interval on "Enter"
+    tagInput.addEventListener('keydown', function(event) {
+        const tag = tagInput.value.trim();
+        if (event.key === 'Enter' && tag) {
+            if (!isTyping) {
+                // Set start timestamp
+                startTimestamp = Math.floor(videoPlayer.currentTime * 1000); // Convert to milliseconds
+                videoPlayer.play();
+                warningMsg.style.display = 'block'; // Show warning message
+                isTyping = true;
+            } else {
+                // Set end timestamp and save tag
+                endTimestamp = Math.floor(videoPlayer.currentTime * 1000); // Convert to milliseconds
+                if (tag && startTimestamp !== null) {
+                    tags.unshift({ tag, startTimestamp, endTimestamp });
+
+                    // Update the UI
+                    updateList()
+
+                    // Clear the input and warning
+                    tagInput.value = '';
+                    warningMsg.style.display = 'none';
+                    
+                    isTyping = false;
+                }
+            }
+            event.preventDefault(); // Prevent form submission behavior
+        } else if (tag && !isTyping) {
+            videoPlayer.pause();
+        }
+    });
+
+    // Save the tags as a CSV file
+    saveBtn.addEventListener('click', function() {
+        if (tags.length === 0) return; // Do nothing if there are no tags
+
+        let csvContent = "data:text/csv;charset=utf-8,tag,starttimestamp(ms),endtimestamp(ms)\n";
+        tags.forEach(tagObj => {
+            csvContent += `${tagObj.tag},${tagObj.startTimestamp},${tagObj.endTimestamp}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', file.name + '_tags.csv');
+        document.body.appendChild(link); // Required for FF
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // Save the tags as a CSV file
+    deleteBtn.addEventListener('click', function() {
+        tags.shift();
+        updateList()
+    });
+</script>
+
+</body>
+</html>
