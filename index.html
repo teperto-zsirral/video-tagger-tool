@@ -305,7 +305,7 @@
 
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', file.name + '_tags.jsonl');
+        link.setAttribute('download', file?.name + '_tags.jsonl');
         document.body.appendChild(link); // Required for FF
         link.click();
         document.body.removeChild(link);
